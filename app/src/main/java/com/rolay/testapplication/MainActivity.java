@@ -15,7 +15,9 @@ public class MainActivity extends AppCompatActivity {
 		MainViewContract mainView = new MainView(this, presenter);
 		presenter.takeView(mainView);
 
-		mainView.setCustomText("Some long text");
+		//it is right to load data in "Model" code
+        // but it is too little that we can omit the "Model" code
+		mainView.setCustomText(getString(R.string.sample_string));
 	}
 
 }
