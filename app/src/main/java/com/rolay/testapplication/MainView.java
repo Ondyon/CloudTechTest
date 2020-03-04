@@ -97,5 +97,10 @@ class MainView implements MainViewContract {
 		customTextView.setTextSize(textSize);
 	}
 
+	@Override
+	public void scrollTo(int i) {
+		customTextView.scrollTo(i);
+	}
+
 
 }

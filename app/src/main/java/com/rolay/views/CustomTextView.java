@@ -9,7 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -35,6 +35,74 @@ public class CustomTextView extends View {
 	private List<TextLine> lines;
 	private int mTextColor = TEXT_COLOR;
 	private boolean mHorAlighCenter = true;
+	private float mScrollShift = 0;
+	private int mScrollShiftLine;
+	private int mScrollShiftPitch;
+
+	private OnTouchListener onTouchListener = new OnTouchListener() {
+		private int moves;
+		private float currentYPos;
+		private boolean tracking;
+
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				tracking = true;
+				currentYPos = event.getY();
+				moves = 0;
+			}
+			if(event.getAction() == MotionEvent.ACTION_UP) {
+				tracking = false;
+				if(moves == 0) {
+					CustomTextView.this.performClick();
+				}
+			}
+			if(event.getAction() == MotionEvent.ACTION_MOVE) {
+				if(!tracking) return true;
+				moves++;
+				float delta = currentYPos - event.getY();
+				currentYPos = event.getY();
+				doScrollBy(delta);
+			}
+
+
+			return true;
+		}
+
+	};
+
+	/**
+	 * scroll text vertically by delat pixels
+	 * and validate if it is in borders
+	 * @param delta should be negative!
+	 */
+	public void doScrollBy(float delta) {
+		if(mScrollShift - delta > 0) {
+			mScrollShift = 0;
+			return;
+		}
+		if(mScrollShift - delta < - (lines.size()+1) * mTextSize * INTERLINE_HEIGHT_RATIO + mMeasuredHeight) {
+			mScrollShift = - (lines.size()+1) * mTextSize * INTERLINE_HEIGHT_RATIO + mMeasuredHeight;
+			return;
+		}
+		mScrollShift -= delta;
+
+		// smart scrollshift
+		float lineHeight = mTextSize * INTERLINE_HEIGHT_RATIO;
+ 		mScrollShiftLine = -(int)(mScrollShift / lineHeight);
+		mScrollShiftPitch = (int) (mScrollShift % lineHeight);
+
+		invalidate();
+	}
+
+	/**
+	 * scroll text to position in pixels
+	 * @param i should be negative (above the screen)
+	 */
+	public void scrollTo(int i) {
+		mScrollShift = i;
+		doScrollBy(0);	//to adjust if out of borders and invalidate
+	}
 
 	class TextLine {
 		int start;
@@ -66,6 +134,8 @@ public class CustomTextView extends View {
 	private void init() {
 		textPaint = new Paint();
 		textPaint.setColor(mTextColor);
+
+		setOnTouchListener(onTouchListener);
 	}
 
 
@@ -108,6 +178,7 @@ public class CustomTextView extends View {
 
 		} while (start < internalValue.length());
 
+		doScrollBy(0);	//also recalculate scroll if it is outside
 		invalidate();
 	}
 
@@ -123,8 +194,13 @@ public class CustomTextView extends View {
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		int vOffset = mTextSize;
-		for(TextLine oneLine : lines) {
+		// simplest version:
+		//int vOffset = mScrollShift + mTextSize;
+
+		int vOffset = mScrollShiftPitch + mTextSize;
+
+		for(int i = mScrollShiftLine; i < lines.size(); i++) {
+			TextLine oneLine = lines.get(i);
 			int x = mHorAlighCenter ? (mMeasuredWidth/2 - oneLine.width/2) : 0;
 			canvas.drawText(internalValue.toCharArray(), oneLine.start, oneLine.count, x, vOffset, textPaint);
 			if(vOffset >= mMeasuredHeight)
@@ -132,6 +208,8 @@ public class CustomTextView extends View {
 			vOffset += mTextSize * INTERLINE_HEIGHT_RATIO;
 		}
 	}
+
+
 
 	/**
 	 * set text string value to be displayed

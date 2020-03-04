@@ -31,6 +31,7 @@ public class MainPresenter implements MainPresenterContract {
 		mView.markItalic(italic);
 		mView.setCustomTextItalic(italic);
 		mView.setCustomTextSize(mTextSize);
+		mView.scrollTo(0);
 	}
 
 	@Override

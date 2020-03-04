@@ -13,4 +13,6 @@ public interface MainViewContract {
 	void setCustomTextItalic(boolean italic);
 
 	void setCustomTextSize(int mTextSize);
+
+	void scrollTo(int i);
 }
