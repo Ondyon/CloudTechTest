@@ -1,7 +1,7 @@
 package com.rolay.testapplication;
 
 public class MainPresenter implements MainPresenterContract {
-	private static final int INITIAL_TEXT_SIZE = 210;
+	private static final int INITIAL_TEXT_SIZE = 70;
 	private static final int MAX_TEXT_SIZE = 2000;
 	private static final int MIN_TEXT_SIZE = 13;
 
@@ -14,9 +14,11 @@ public class MainPresenter implements MainPresenterContract {
 	MainPresenter() {
 	}
 
+	@Override
 	public void takeView(MainViewContract panelView) {
 		this.mView = panelView;
 	}
+
 
 	@Override
 	public void customTextClicked() {
@@ -60,4 +62,5 @@ public class MainPresenter implements MainPresenterContract {
 		mTextSize -= 10;
 		mView.setCustomTextSize(mTextSize);
 	}
+
 }

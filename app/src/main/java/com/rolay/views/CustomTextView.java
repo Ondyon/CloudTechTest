@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class CustomTextView extends View {
 
 	private static final float INTERLINE_HEIGHT_RATIO = 0.9f;
 	private static final int TEXT_COLOR = 0xFF0066CC;
-	private static final int TEXT_SIZE = 210;
+	private static final int TEXT_SIZE = 70;
 
 	private Paint textPaint;
 	private String internalValue;
@@ -84,8 +85,26 @@ public class CustomTextView extends View {
 			if (count == 0) {
 				return;	// safety nut. It may happen if something is not measured or set yet
 			}
-			lines.add(new TextLine(start, count, calculatedWidth[0]));
-			start += count;
+
+			//find '\n' on current line
+			int newLinePos = internalValue.indexOf('\n', start);
+			int newLineCount = newLinePos - start;
+
+			// if found and it is not beyond border
+			if(newLinePos != -1 && newLineCount < count) {
+				if(newLineCount == 0) {
+					// special case if '\n' just equals the border ( newLineCount + 1 = count)
+					start += 1;
+					continue;
+				}
+				//recalculate 'calculatedWidth' with new length from start to '\n'
+				textPaint.breakText(internalValue.toCharArray(), start, newLineCount, mMeasuredWidth, calculatedWidth);
+				lines.add(new TextLine(start, newLineCount, calculatedWidth[0]));
+				start += newLineCount + 1;
+			} else {
+				lines.add(new TextLine(start, count, calculatedWidth[0]));
+				start += count;
+			}
 
 		} while (start < internalValue.length());
 
